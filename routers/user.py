@@ -26,8 +26,13 @@ async def user(id: int):
 async def user(user: User):
 
     user_dict = dict(user)
+    del user_dict["id"]
 
-    db_client.local.users.insert_one(user_dict)
+    id = db_client.local.users.insert_one(user_dict).inserted_id
+    
+    db_client.local.users.find_one({"_id": id})
+    
+    return user
 
 @router.put("/")
 async def user(id: int):
