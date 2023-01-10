@@ -3,6 +3,7 @@
 from fastapi import APIRouter,HTTPException, status
 from db.models.user import User
 from db.client import db_client
+from db.schemas.user import user_schema
 
 
 router = APIRouter(prefix="/userdb",
@@ -30,9 +31,9 @@ async def user(user: User):
 
     id = db_client.local.users.insert_one(user_dict).inserted_id
     
-    db_client.local.users.find_one({"_id": id})
+    new_user = user_schema(db_client.local.users.find_one({"_id": id})) 
     
-    return user
+    return User(**new_user)
 
 @router.put("/")
 async def user(id: int):
