@@ -7,9 +7,10 @@ from db.schemas.user import user_schema
 
 
 router = APIRouter(prefix="/userdb",
-                   tags=["userdb"],
-                   responses={status.HTTP_404_NOT_FOUND: {"message": "no encontrado"}}
-                   )
+                    tags=["userdb"],
+                    responses={status.HTTP_404_NOT_FOUND: {"message": "no encontrado"}}
+                    )
+
 
 @router.get("/")
 async def user():
@@ -25,7 +26,12 @@ async def user(id: int):
 
 @router.post("/", response_model=User, status_code= status.HTTP_201_CREATED)
 async def user(user: User):
-
+    
+    if type(search_user("email", user.email)) == User:
+        raise HTTPException(
+            status_code= status.HTTP_404_NOT_FOUND,
+            detail= "El usuario ya existe"
+            )
     user_dict = dict(user)
     del user_dict["id"]
 
@@ -42,3 +48,11 @@ async def user(id: int):
 @router.delete("/{id}")
 async def user(id: int):
     pass
+
+def search_user(field: str, key):
+    
+    try:
+        user = db_client.local.users.find_one({field: key})
+        return User(**user_schema(user))
+    except:
+        return {"error": "no se a encontrado el usuario"}
