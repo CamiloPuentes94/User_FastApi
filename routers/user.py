@@ -42,9 +42,18 @@ async def user(user: User):
     
     return User(**new_user)
 
-@router.put("/")
-async def user(id: int):
-    pass
+@router.put("/", response_model=User)
+async def user(user: User):
+    
+    user_dict = dict(user)
+    del user_dict["id"]
+    
+    try:
+        db_client.local.users.find_one_and_replace({"_id": ObjectId(user.id)}, user_dict)
+    except:
+        return {"error":"No se ha actualizado el usuario"}
+    
+    return search_user("_id", ObjectId(user.id))
 
 @router.delete("/{id}", status_code= status.HTTP_204_NO_CONTENT)
 async def user(id: str):
