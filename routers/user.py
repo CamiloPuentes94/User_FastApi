@@ -3,7 +3,8 @@
 from fastapi import APIRouter,HTTPException, status
 from db.models.user import User
 from db.client import db_client
-from db.schemas.user import user_schema
+from db.schemas.user import user_schema, users_schema
+from bson import ObjectId
 
 
 router = APIRouter(prefix="/userdb",
@@ -12,17 +13,17 @@ router = APIRouter(prefix="/userdb",
                     )
 
 
-@router.get("/")
+@router.get("/", response_model=list[User])
 async def user():
-    pass
+    return users_schema(db_client.local.users.find())
 
 @router.get("/{id}") #path
-async def user(id: int):
-    pass
+async def user(id: str):
+    return search_user("_id", ObjectId(id))
 
 @router.get("/") # Query
-async def user(id: int):
-    pass
+async def user(id: str):
+    return search_user("_id", ObjectId(id))
 
 @router.post("/", response_model=User, status_code= status.HTTP_201_CREATED)
 async def user(user: User):
